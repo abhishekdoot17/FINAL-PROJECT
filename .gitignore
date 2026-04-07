@@ -1,0 +1,31 @@
+# Environment variables - NEVER commit these
+.env
+.env.local
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Build outputs
+.next/
+/build
+/out
+/dist
+
+# Uploads (user-generated content)
+server/uploads/*
+!server/uploads/.gitkeep
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
