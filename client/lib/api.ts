@@ -1,4 +1,10 @@
-const API_URL = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001');
+// In the browser, always use relative paths ('' = same origin).
+// Next.js rewrites handle forwarding /api/* to the Express backend.
+// In SSR context, use NEXT_PUBLIC_API_URL so server-to-server calls work.
+const API_URL =
+  typeof window !== 'undefined'
+    ? ''
+    : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
 
 const getToken = () =>
   typeof window !== 'undefined' ? localStorage.getItem('ua_token') : null;
