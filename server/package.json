@@ -4,7 +4,7 @@
   "description": "Urban Awareness Backend API",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "NODE_OPTIONS='--tls-min-v1.2' node index.js",
     "dev": "NODE_OPTIONS='--tls-min-v1.2' nodemon index.js"
   },
   "keywords": [],

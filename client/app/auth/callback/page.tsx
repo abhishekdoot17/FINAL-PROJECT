@@ -24,7 +24,7 @@ function CallbackHandler() {
     }
 
     // Fetch user profile with the token
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+    fetch('/api/auth/me', {
       headers: { Authorization: `Bearer ${token}` },
       credentials: 'include',
     })
