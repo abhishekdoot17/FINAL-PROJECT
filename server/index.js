@@ -16,8 +16,6 @@ const app = express();
 
 // Security middleware
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-
-// Trust proxy (required on Render/Heroku for correct IP, https detection)
 app.set('trust proxy', 1);
 
 // CORS — allow localhost dev + production Vercel URL
@@ -28,7 +26,7 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // allow non-browser requests
+    if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
     callback(new Error(`CORS blocked: ${origin}`));
   },
@@ -41,7 +39,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 app.use(passport.initialize());
 
-// Static uploads
+// Static uploads (only useful locally; use cloud storage in full production)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
@@ -64,15 +62,30 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ message: err.message || 'Internal Server Error' });
 });
 
-// MongoDB + Start server
-const PORT = process.env.PORT || 5001;
-mongoose
-  .connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/urban-awareness')
-  .then(() => {
-    console.log('✅ MongoDB connected');
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-  })
-  .catch(err => {
-    console.error('❌ MongoDB connection error:', err.message);
-    process.exit(1);
-  });
+// ── MongoDB connection (cached for serverless) ─────────────────
+let isConnected = false;
+
+const connectDB = async () => {
+  if (isConnected) return;
+  await mongoose.connect(
+    process.env.MONGODB_URI || 'mongodb://localhost:27017/urban-awareness'
+  );
+  isConnected = true;
+  console.log('✅ MongoDB connected');
+};
+
+// ── Serverless handler (Vercel) ──────────────────────────────
+const handler = async (req, res) => {
+  await connectDB();
+  return app(req, res);
+};
+
+// ── Local dev server ─────────────────────────────────────────
+if (require.main === module) {
+  const PORT = process.env.PORT || 5001;
+  connectDB()
+    .then(() => app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`)))
+    .catch(err => { console.error('❌', err.message); process.exit(1); });
+}
+
+module.exports = handler;
